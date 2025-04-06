@@ -1,0 +1,13 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: financial-advisor
+  namespace: wealthwise
+spec:
+  template:
+    spec:
+      containers:
+        - envFrom:
+            - secretRef:
+                name: openai-token
+          image: 'quay.io/rh-ee-dwaters/ww-financial-advisor:latest'
