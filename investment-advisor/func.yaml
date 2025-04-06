@@ -1,8 +1,10 @@
 specVersion: 0.36.0
 name: investment-advisor
 runtime: quarkus
+image: quay.io/rh-ee-dwaters/ww-investment-advisor:latest
 created: 2025-04-05T16:35:54.733269104+11:00
 build:
+  builder: s2i
   buildEnvs:
   - name: BP_NATIVE_IMAGE
     value: "false"
