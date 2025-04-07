@@ -104,8 +104,8 @@ class WwInvestmentRecommendations extends LitElement {
             };
 
             var hostnameBase = window.location.hostname.split(".").slice(1).join(".");
-            this.ajax.open("POST", "investment-advisor." + hostnameBase, JSON.stringify(data));
-            this.ajax.send();
+            this.ajax.open("POST", "https://investment-advisor-wealthwise." + hostnameBase + "/chat", true);
+            this.ajax.send(JSON.stringify(data));
         }
     }
 }

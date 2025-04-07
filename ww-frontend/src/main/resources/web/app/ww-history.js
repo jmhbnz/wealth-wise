@@ -45,8 +45,8 @@ class WwHistory extends LitElement {
             "message": "get"
         };
         var hostnameBase = window.location.hostname.split(".").slice(1).join(".");
-        this.ajax.open("POST", "advisor-history." + hostnameBase + "/getHistory", JSON.stringify(data));
-        this.ajax.send();
+        this.ajax.open("POST", "https://advisor-history-wealthwise." + hostnameBase + "/getHistory", true);
+        this.ajax.send(JSON.stringify(data));
     }
 
     onAjaxLoad() {

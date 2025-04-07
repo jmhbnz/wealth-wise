@@ -137,8 +137,8 @@ class WwFinancialAdvisor extends LitElement {
         this._addToMessages({owner: 'user', message: this._question}, {owner: 'loading'});
         var data = { "message": this._question };
         var hostnameBase = window.location.hostname.split(".").slice(1).join(".");
-        this.ajax.open("POST", "financial-advisor." + hostnameBase, JSON.stringify(data));
-        this.ajax.send();
+        this.ajax.open("POST", "https://financial-advisor-wealthwise." + hostnameBase + "/chat", true);
+        this.ajax.send(JSON.stringify(data));
         this._question = '';
     }
 

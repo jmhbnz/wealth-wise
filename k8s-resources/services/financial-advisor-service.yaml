@@ -7,7 +7,13 @@ spec:
   template:
     spec:
       containers:
-        - envFrom:
+        - env:
+            # NOTE: This CORS configuration is not safe and should only be used in Dev
+            - name: QUARKUS_HTTP_CORS
+              value: 'true'
+            - name: QUARKUS_HTTP_CORS_ORIGINS
+              value: '*'
+          envFrom:
             - secretRef:
                 name: openai-token
           image: 'quay.io/rh-ee-dwaters/ww-financial-advisor:latest'
