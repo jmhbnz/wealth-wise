@@ -1,0 +1,19 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: advisor-history
+  namespace: wealthwise
+spec:
+  template:
+    spec:
+      containers:
+        - env:
+            # NOTE: This CORS configuration is not safe and should only be used in Dev
+            - name: QUARKUS_HTTP_CORS
+              value: 'true'
+            - name: QUARKUS_HTTP_CORS_ORIGINS
+              value: '*'
+          envFrom:
+            - secretRef:
+                name: db-credentials
+          image: 'quay.io/rh-ee-dwaters/ww-advisor-history:latest'
