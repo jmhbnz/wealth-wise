@@ -4,19 +4,19 @@ import functions.History;
 
 
 public class SearchOutput {
-    private List<History> messages;
+    private List<History> message;
 
     public SearchOutput() {}
 
-    public SearchOutput(List<History> messages) {
-        this.messages = messages;
+    public SearchOutput(List<History> message) {
+        this.message = message;
     }
 
-    public List<History> getMessages() {
-        return messages;
+    public List<History> getMessage() {
+        return message;
     }
 
-    public void setMessages(List<History> messages) {
-        this.messages = messages;
+    public void setMessage(List<History> message) {
+        this.message = message;
     }
 }

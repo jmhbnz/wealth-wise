@@ -46,6 +46,7 @@ class WwHistory extends LitElement {
         };
         var hostnameBase = window.location.hostname.split(".").slice(1).join(".");
         this.ajax.open("POST", "https://advisor-history-wealthwise." + hostnameBase + "/getHistory", true);
+        this.ajax.setRequestHeader("Content-Type", "application/json");
         this.ajax.send(JSON.stringify(data));
     }
 
