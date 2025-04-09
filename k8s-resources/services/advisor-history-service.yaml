@@ -13,6 +13,10 @@ spec:
               value: 'true'
             - name: QUARKUS_HTTP_CORS_ORIGINS
               value: '*'
+            - name: QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION_CREATE_SCHEMAS
+              value: 'true'
+            - name: QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION
+              value: create
           envFrom:
             - secretRef:
                 name: db-credentials

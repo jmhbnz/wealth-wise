@@ -5,10 +5,12 @@ import functions.History;
 import java.util.List;
 import functions.AddOutput;
 import functions.SearchOutput;
+import jakarta.transaction.Transactional;
 
 /**
  * Your Function class
  */
+@Transactional
 public class Function {
 
     /**
@@ -24,8 +26,10 @@ public class Function {
     }
 
     @Funq
-    public SearchOutput getHistory() {
+    public SearchOutput getHistory(Input input) {
+        System.out.println("About to find history data");
         List<History> h = History.findAllByOrderByTimestampDesc();
+        System.out.println("Got " + h.size() + " Items of history");
         return new SearchOutput(h);
     }
 }
