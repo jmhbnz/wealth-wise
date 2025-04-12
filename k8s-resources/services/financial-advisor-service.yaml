@@ -21,3 +21,11 @@ spec:
             - secretRef:
                 name: openai-token
           image: 'quay.io/rh-ee-dwaters/ww-financial-advisor:latest'
+          volumeMounts:
+            - mountPath: /deployments/config
+              name: config
+              readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: financial-advisor-app-properties

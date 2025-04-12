@@ -1,0 +1,18 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: add-history
+  namespace: wealthwise
+spec:
+  template:
+    spec:
+      containers:
+        - env:
+            - name: QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION_CREATE_SCHEMAS
+              value: 'true'
+            - name: QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION
+              value: create
+          envFrom:
+            - secretRef:
+                name: db-credentials
+          image: 'quay.io/rh-ee-dwaters/ww-add-history:latest'

@@ -5,8 +5,11 @@ import functions.Output;
 import io.quarkus.funqy.Funq;
 import functions.FinancialAdviserService;
 import jakarta.inject.Inject;
+import java.util.UUID;
+import io.smallrye.reactive.messaging.ce.OutgoingCloudEventMetadata;
 import org.eclipse.microprofile.reactive.messaging.Channel;
 import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.eclipse.microprofile.reactive.messaging.Message;
 
 /**
  * Your Function class
@@ -33,8 +36,15 @@ public class Function {
 
         System.out.println("Getting advice based on: " + input.getMessage());
 
-        // Emit a history message
-        historyEmitter.send("{\"message\": \"" + input.getMessage() + "\"}");
+        // Emit a history message as a CloudEvent
+        Message<String> message = Message.of(input.getMessage());
+        UUID uuid = UUID.randomUUID();
+        message.addMetadata(OutgoingCloudEventMetadata.builder()
+            .withId(uuid.toString())
+            .withType("wealthwise-history")
+            .withSubject("financial-advisor-history")
+            .build());
+        historyEmitter.send(message);
 
         // Now process the request
         String response = financialAdviserService.chat(input.getMessage());

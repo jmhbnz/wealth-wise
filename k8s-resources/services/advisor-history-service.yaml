@@ -21,3 +21,11 @@ spec:
             - secretRef:
                 name: db-credentials
           image: 'quay.io/rh-ee-dwaters/ww-advisor-history:latest'
+          volumeMounts:
+            - mountPath: /deployments/config
+              name: config
+              readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: investment-advisor-app-properties
