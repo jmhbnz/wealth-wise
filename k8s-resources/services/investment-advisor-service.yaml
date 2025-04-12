@@ -1,3 +1,25 @@
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: investment-advisor-app-properties
+  namespace: wealthwise
+data:
+  application.properties: :-
+    quarkus.smallrye-health.root-path=/health
+    quarkus.smallrye-health.liveness-path=liveness
+    quarkus.smallrye-health.readiness-path=readiness
+    quarkus.langchain4j.openai.api-key=${OPENAI_API_KEY}
+    quarkus.langchain4j.pgvector.dimension=1536
+    quarkus.langchain4j.timeout=60s
+    kafka.cloud-events=true
+    mp.messaging.outgoing.wealthwise-history.connector=smallrye-kafka
+    mp.messaging.outgoing.wealthwise-history.cloud-events-source=investment-advisor
+    mp.messaging.outgoing.wealthwise-history.cloud-events-type=wealthwise-history
+    mp.messaging.outgoing.wealthwise-history.cloud-events-subject=wealthwise-history
+    mp.messaging.outgoing.wealthwise-history.cloud-events-mode=structured
+type: Opaque
+---
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
@@ -21,3 +43,11 @@ spec:
             - secretRef:
                 name: openai-token
           image: 'quay.io/rh-ee-dwaters/ww-investment-advisor:latest'
+          volumeMounts:
+            - mountPath: /deployments/config
+              name: config
+              readOnly: true
+      volumes:
+        - name: config
+          secret:
+            secretName: investment-advisor-app-properties

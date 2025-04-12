@@ -1,126 +1,108 @@
-# Wealth Wise
+# Wealth Wise Serverless Setup
 
-## Setting Up Your OpenAI API Key
+## Prerequisites
 
-To run this application, you need to set your OpenAI API key as an environment variable.
+### KNative CLI
 
-### Linux & macOS (Bash/Zsh)
-Open a terminal and run:
+Ensure you install the KNative CLI tool (KNative is the upstream open source project that OpenShift Serverless is derived from):
+
+[KNative CLI Setup](https://knative.dev/docs/client/install-kn/)
+
+### Quay.io Account
+
+You will need a container registry to transfer serverless images to your OpenShift environment. Sign up at [quay.io](https://quay.io)
+
+### Access to OpenShift
+
+You will need access to an OpenShift cluster with sufficient resources, and the oc CLI tool to configure it. Ensure you're logged in to your OpenShift cluster with oc.
+
+### An OpenAI API Key
+
+You will need to obtain an API key from [OpenAI](https://platform.openai.com/account/api-keys)
+
+## Setting Up The Environment for Serverless
+
+Start by cloning this project to your local environment.
+
+### Build and Push the Container Images
+
+Use KNative CLI to build and push all of the serverless container images to your quay.io registry. Ensure that docker is logged in to quay.io before you run these commands.
 
 ```sh
-export OPENAI_API_KEY="your-api-key-here"
+kn func build --path advisor-history --builder s2i --image quay.io/<your-quay-account>/ww-advisor-history:latest --push
+kn func build --path financial-advisor --builder s2i --image quay.io/<your-quay-account>/ww-financial-advisor:latest --push
+kn func build --path investment-advisor --builder s2i --image quay.io/<your-quay-account>/ww-investment-advisor:latest --push
+kn func build --path ww-frontend --builder s2i --image quay.io/<your-quay-account>ww-frontend:latest --push
+kn func build --path add-history --builder s2i --image quay.io/<your-quay-account>ww-add-history:latest --push
 ```
 
-To make this change persistent, add the line above to your `~/.bashrc`, `~/.bash_profile`, or `~/.zshrc` file:
+### Create a dedicated project for your serverless workloads
 
 ```sh
-echo 'export OPENAI_API_KEY="your-api-key-here"' >> ~/.bashrc
-# or for zsh users
-echo 'export OPENAI_API_KEY="your-api-key-here"' >> ~/.zshrc
+oc new-project wealthwise
 ```
 
-Then, restart your terminal or run:
+### Create the required secrets
+
+Firstly, create a secret for your OpenAI API key:
 
 ```sh
-source ~/.bashrc  # or source ~/.zshrc for zsh users
+oc create secret generic openai-token \
+    --from-literal=OPENAI_API_KEY=<your-openai-key> -n wealthwise
 ```
 
-### Windows (Command Prompt)
-Run the following command in Command Prompt:
+Then create a database access secret:
 
-```cmd
-set OPENAI_API_KEY=your-api-key-here
+```sh
+oc create secret generic db-credentials \  --from-literal=QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://wealthwise.ww-serverless.svc.cluster.local:5432/wealthwise \  --from-literal=QUARKUS_DATASOURCE_USERNAME=devuser \  --from-literal=QUARKUS_DATASOURCE_PASSWORD=devpass \  -n wealthwise
 ```
 
-Note: This sets the variable only for the current session.
+Then create app config secrets for the financial advisor and investment advisor functions:
 
-To set it permanently, use:
-
-```cmd
-setx OPENAI_API_KEY "your-api-key-here"
+```sh
+oc create secret generic financial-advisor-app-properties --from-file=financial-advisor/src/main/resources/application.properties -n wealthwise
+oc create secret generic investment-advisor-app-properties --from-file=investment-advisor/src/main/resources/application.properties -n wealthwise
 ```
 
-### Windows (PowerShell)
-Run:
+### Deploy the PostGreSQL Database
 
-```powershell
-$env:OPENAI_API_KEY="your-api-key-here"
+OpenShift provides a ready-made PostgreSQL template that you can deploy through the Developer Console or CLI. When configuring it, make sure the DB credentials match those stored in your db-credentials secret. Also ensure that the postgresql version is 12 (or higher) as this is a requirement of the default JDBC binding library used in the Quarkus applications. Ensure that the database server name is wealthwise, the database name is wealthwise, and the username and password are devuser and devpass.
+
+## Deploy OpenShift Serverless and Apache Kafka into the OpenShift Environment
+
+Use the Operators to deploy both OpenShift Serverless and Streams for Apache Kafka. Ensure that you deploy the KNative Serving, KNative Eventing and KNative Kafka Eventing API objects into their relevant namespaces.
+
+### Create the Kafka Cluster
+
+Create the cluster using the Kubernetes resource definition:
+
+```sh
+oc apply -f k8s-resources/kafka/kafka-cluster.yaml
+oc apply -f k8s-resources/kafka/kafka-topics.yaml
 ```
 
-For a permanent change, add the following to your PowerShell profile:
+### Deploy the backend functions
 
-```powershell
-[System.Environment]::SetEnvironmentVariable("OPENAI_API_KEY", "your-api-key-here", "User")
+```sh
+oc project wealthwise
+oc apply -f k8s-resources/services/financial-advisor-service.yaml
+oc apply -f k8s-resources/services/investment-advisor-service.yaml
+oc apply -f k8s-resources/services/advisor-history-service.yaml
+oc apply -f k8s-resources/services/add-history-service.yaml
 ```
 
-After setting the variable, restart your terminal for changes to take effect.
+### Deploy the frontend function
 
-
-## Running the application in dev mode
-
-You can run your application in dev mode that enables live coding using:
-
-```shell script
-./mvnw quarkus:dev
+```sh
+oc apply -f k8s-resources\\services\\frontend-service.yaml
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+### Get the route to the new application
 
-## Packaging and running the application
+Run the command:
 
-The application can be packaged using:
-
-```shell script
-./mvnw package
+```sh
+kn service describe frontend
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
-
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/financial-advisor-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- LangChain4j OpenAI ([guide](https://docs.quarkiverse.io/quarkus-langchain4j/dev/index.html)): Provides the basic integration with LangChain4j
-- WebSockets Next ([guide](https://quarkus.io/guides/websockets-next-reference)): Implementation of the WebSocket API with enhanced efficiency and usability
-- Web Bundler ([guide](https://docs.quarkiverse.io/quarkus-web-bundler/dev/)): Creating full-stack Web Apps is fast and simple with this extension. Zero config bundling for your web-app scripts (js, jsx, ts, tsx), dependencies (jquery, react, htmx, ...) and styles (css, scss, sass).
-
-## Use Cases for Demo
-
-### RAG-Enhanced Market Insights
-**User asks:** "How should I invest $5,000?"
-
-### Tax Advisory with Up-to-Date Information (RAG)
-**User asks:** "What are the latest tax deductions?"
-
-### Investment Portfolio Builder
-**User selects:** Conservative, Balanced, or Aggressive risk level.
-
-### History (DB)
-All of the above should show in the History
+to find out the URL to the frontend of the Wealthwise website. Open the link in a browser and have fun!
