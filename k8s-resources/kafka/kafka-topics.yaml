@@ -1,0 +1,11 @@
+---
+apiVersion: kafka.strimzi.io/v1beta1
+kind: KafkaTopic
+metadata:
+  namespace: wealthwise
+  name: wealthwise-history
+  labels:
+    strimzi.io/cluster: kafka-cluster
+spec:
+  partitions: 10
+  replicas: 1

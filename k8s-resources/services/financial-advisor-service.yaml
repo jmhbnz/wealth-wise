@@ -13,6 +13,10 @@ spec:
               value: 'true'
             - name: QUARKUS_HTTP_CORS_ORIGINS
               value: '*'
+            # This setting should point at the Kafka Bootstrap Server used to send
+            # Kafka history events to the add-history function
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka-cluster-kafka-bootstrap.kafka.svc.cluster.local:9092"
           envFrom:
             - secretRef:
                 name: openai-token
