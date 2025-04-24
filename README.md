@@ -32,8 +32,8 @@ Use KNative CLI to build and push all of the serverless container images to your
 kn func build --path advisor-history --builder s2i --image quay.io/<your-quay-account>/ww-advisor-history:latest --push
 kn func build --path financial-advisor --builder s2i --image quay.io/<your-quay-account>/ww-financial-advisor:latest --push
 kn func build --path investment-advisor --builder s2i --image quay.io/<your-quay-account>/ww-investment-advisor:latest --push
-kn func build --path ww-frontend --builder s2i --image quay.io/<your-quay-account>ww-frontend:latest --push
-kn func build --path add-history --builder s2i --image quay.io/<your-quay-account>ww-add-history:latest --push
+kn func build --path ww-frontend --builder s2i --image quay.io/<your-quay-account>/ww-frontend:latest --push
+kn func build --path add-history --builder s2i --image quay.io/<your-quay-account>/ww-add-history:latest --push
 ```
 
 ### Create a dedicated project for your serverless workloads
@@ -66,7 +66,18 @@ oc create secret generic investment-advisor-app-properties --from-file=investmen
 
 ### Deploy the PostGreSQL Database
 
-OpenShift provides a ready-made PostgreSQL template that you can deploy through the Developer Console or CLI. When configuring it, make sure the DB credentials match those stored in your db-credentials secret. Also ensure that the postgresql version is 12 (or higher) as this is a requirement of the default JDBC binding library used in the Quarkus applications. Ensure that the database server name is wealthwise, the database name is wealthwise, and the username and password are devuser and devpass.
+OpenShift provides a ready-made PostgreSQL template that you can deploy through the Developer Console or CLI. When configuring it, we'll make sure the DB credentials match those stored in your db-credentials secret. We will also ensure that the postgresql version is 12 (or higher) as this is a requirement of the default JDBC binding library used in the Quarkus applications. The database server name is set to `wealthwise`, the database name is `wealthwise`, and the username and password are `devuser` and `devpass`.
+
+Run the snippet below to create the database
+
+```sh
+oc new-app postgresql-persistent --template postgresql-persistent --namespace wealthwise \
+  --param POSTGRESQL_VERSION=latest \
+  --param POSTGRESQL_DATABASE=wealthwise \
+  --param DATABASE_SERVICE_NAME=wealthwise \
+  --param POSTGRESQL_USER=devuser \
+  --param POSTGRESQL_PASSWORD=devpass
+```
 
 ## Deploy OpenShift Serverless and Apache Kafka into the OpenShift Environment
 
