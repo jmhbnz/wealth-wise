@@ -1,3 +1,4 @@
+---
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
@@ -5,6 +6,9 @@ metadata:
   namespace: wealthwise
 spec:
   template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/min-scale: "3"
     spec:
       containers:
         - image: 'quay.io/rh-ee-dwaters/ww-frontend:latest'

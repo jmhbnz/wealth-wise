@@ -19,6 +19,7 @@ data:
     mp.messaging.outgoing.wealthwise-history.cloud-events-subject=wealthwise-history
     mp.messaging.outgoing.wealthwise-history.cloud-events-mode=structured
 type: Opaque
+
 ---
 apiVersion: serving.knative.dev/v1
 kind: Service
