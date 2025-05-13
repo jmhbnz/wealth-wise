@@ -4,8 +4,8 @@ apiVersion: v1
 metadata:
   name: investment-advisor-app-properties
   namespace: wealthwise
-data:
-  application.properties: :-
+stringData:
+  application.properties:
     quarkus.smallrye-health.root-path=/health
     quarkus.smallrye-health.liveness-path=liveness
     quarkus.smallrye-health.readiness-path=readiness
